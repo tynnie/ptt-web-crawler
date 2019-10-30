@@ -147,10 +147,10 @@ def getPageNumber(content) :
     return pageNumber
 
 if __name__ == "__main__":  
-#   PttName = str(sys.argv[1])
-#   ParsingPage = int(sys.argv[2])
-   PttName = "HatePolitics"
-   ParsingPage = 3000
+   PttName = str(sys.argv[1])
+   ParsingPage = int(sys.argv[2])
+#   PttName = "HatePolitics"
+#   ParsingPage = 3000
    FILENAME='data-'+PttName+'-'+datetime.now().strftime('%Y-%m-%d-%H-%M-%S')+'.json'
    store('[') 
    print('Start parsing [',PttName,']....')
