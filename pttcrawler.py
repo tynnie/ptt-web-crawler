@@ -52,82 +52,65 @@ def parseGos(link , g_id):
         res=rs.get(link,verify=False)
         soup = BeautifulSoup(res.text,'html.parser')
         try:
-            author  = soup.select('.article-meta-value')[0].text
         
-        except:
-            author = "author is not find"
-            
-        try:
-            title = soup.select('.article-meta-value')[2].text
-        
-        except:
-            title = "title is not find"
-        
-        
-        try:
-            date = soup.select('.article-meta-value')[3].text
-        
-        except:
-            date = "date is not find"
+	        author  = soup.select('.article-meta-value')[0].text
+	        title = soup.select('.article-meta-value')[2].text
+	        date = soup.select('.article-meta-value')[3].text
+	        
+	        try:
+	                targetIP=u'※ 發信站: 批踢踢實業坊'
+	                ip =  soup.find(string = re.compile(targetIP))
+	                ip = re.search(r"[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*",ip).group()
+	        except:
+	                ip = "ip is not find"
 
-        
-        
-  
-        try:
-                targetIP=u'※ 發信站: 批踢踢實業坊'
-                ip =  soup.find(string = re.compile(targetIP))
-                ip = re.search(r"[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*",ip).group()
+	        content = soup.find(id="main-content").text
+	        target_content=u'※ 發信站: 批踢踢實業坊(ptt.cc),'
+	        content = content.split(target_content)
+	        content = content[0].split(date)
+	        main_content = content[1].replace('\n', '  ').replace('\t', '  ')
+	        
+	        num , g , b , n ,message = 0,0,0,0,{}
+	        for tag in soup.select('div.push'):
+	                num += 1
+	                push_tag = tag.find("span", {'class': 'push-tag'}).text
+	                #print "push_tag:",push_tag
+	                push_userid = tag.find("span", {'class': 'push-userid'}).text       
+	                #print "push_userid:",push_userid
+	                push_content = tag.find("span", {'class': 'push-content'}).text   
+	                push_content = push_content[1:]
+	                #print "push_content:",push_content
+	                push_ipdatetime = tag.find("span", {'class': 'push-ipdatetime'}).text   
+	                push_ipdatetime = remove(push_ipdatetime, '\n')
+	                #print "push-ipdatetime:",push_ipdatetime 
+	                
+	                message[num]={"狀態":push_tag,"留言者":push_userid,
+	                              "留言內容":push_content,"留言時間":push_ipdatetime}
+	                if push_tag == u'推 ':
+	                    g += 1
+	                elif push_tag == u'噓 ':
+	                    b += 1
+	                else:
+	                    n += 1
+	        
+	        messageNum = {"g":g,"b":b,"n":n,"all":num}
+	#        # json-data  type(d) dict
+	#          #.encode('utf-8')非必要
+	#        d={"a_ID":str(g_id) , "b_作者":author.encode('utf-8'), "c_標題":title.encode('utf-8'), "d_日期":date.encode('utf-8'),
+	#           "e_ip":ip.encode('utf-8'), "f_內文":main_content.encode('utf-8'), "g_推文":message,"h_推文總數":messageNum}
+	        d={"00_link":link,"a_ID":str(g_id) , "b_作者":author, "c_標題":title, "d_日期":date,
+	           "e_ip":ip, "f_內文":main_content, "g_推文":message,"h_推文總數":messageNum}
+	        
+	        json_data = json.dumps(d,ensure_ascii=False, indent=4, sort_keys=True)+','
+	#        print(json_data)
+	        store(json_data)
         except:
-                ip = "ip is not find"
-
-        try:
-            content = soup.find(id="main-content").text
-            target_content=u'※ 發信站: 批踢踢實業坊(ptt.cc),'
-            content = content.split(target_content)
-            content = content[0].split(date)
-            main_content = content[1].replace('\n', '  ').replace('\t', '  ')
-        except:
-            content = "content is not find"
-        
-        try:
-            num , g , b , n ,message = 0,0,0,0,{}
-            for tag in soup.select('div.push'):
-                    num += 1
-                    push_tag = tag.find("span", {'class': 'push-tag'}).text
-                    #print "push_tag:",push_tag
-                    push_userid = tag.find("span", {'class': 'push-userid'}).text       
-                    #print "push_userid:",push_userid
-                    push_content = tag.find("span", {'class': 'push-content'}).text   
-                    push_content = push_content[1:]
-                    #print "push_content:",push_content
-                    push_ipdatetime = tag.find("span", {'class': 'push-ipdatetime'}).text   
-                    push_ipdatetime = remove(push_ipdatetime, '\n')
-                    #print "push-ipdatetime:",push_ipdatetime 
-                    
-                    message[num]={"狀態":push_tag,"留言者":push_userid,
-                                  "留言內容":push_content,"留言時間":push_ipdatetime}
-                    if push_tag == u'推 ':
-                        g += 1
-                    elif push_tag == u'噓 ':
-                        b += 1
-                    else:
-                        n += 1
-            
-            messageNum = {"g":g,"b":b,"n":n,"all":num}
-        except:
-            message[1]={"狀態":"None","留言者":"None",
-                              "留言內容":"None","留言時間":"None"}
-            messageNum = {"g":"None","b":"None","n":"None","all":"None"}
-#        # json-data  type(d) dict
-#          #.encode('utf-8')非必要
-#        d={"a_ID":str(g_id) , "b_作者":author.encode('utf-8'), "c_標題":title.encode('utf-8'), "d_日期":date.encode('utf-8'),
-#           "e_ip":ip.encode('utf-8'), "f_內文":main_content.encode('utf-8'), "g_推文":message,"h_推文總數":messageNum}
-        d={"a_ID":str(g_id) , "b_作者":author, "c_標題":title, "d_日期":date,
-           "e_ip":ip, "f_內文":main_content, "g_推文":message,"h_推文總數":messageNum}
-        
-        json_data = json.dumps(d,ensure_ascii=False, indent=4, sort_keys=True)+','
-#        print(json_data)
-        store(json_data) 
+        	d={"00_link":link,"a_ID":str(g_id) , "b_作者":"None", "c_標題":"None", "d_日期":"None",
+	           "e_ip":"None", "f_內文":"None", "g_推文":"None","h_推文總數":"None"}
+	        
+	        json_data = json.dumps(d,ensure_ascii=False, indent=4, sort_keys=True)+','
+	#        print(json_data)
+	        store(json_data)  
 
 def store(data):
     with open(FILENAME, 'a') as f:
